@@ -1,0 +1,212 @@
+%% LaTeX-Beamer template for KIT design
+%% by Erik Burger, Christian Hammer
+%% title picture by Klaus Krogmann
+%%
+%% version 2.1
+%%
+%% mostly compatible to KIT corporate design v2.0
+%% http://intranet.kit.edu/gestaltungsrichtlinien.php
+%%
+%% Problems, bugs and comments to
+%% burger@kit.edu
+
+\documentclass[18pt]{beamer}
+
+%% SLIDE FORMAT
+
+% use 'beamerthemekit' for standard 4:3 ratio
+% for widescreen slides (16:9), use 'beamerthemekitwide'
+
+\usepackage{templates/beamerthemekit}
+% \usepackage{templates/beamerthemekitwide}
+
+%% TITLE PICTURE
+
+% if a custom picture is to be used on the title page, copy it into the 'logos'
+% directory, in the line below, replace 'mypicture' with the 
+% filename (without extension) and uncomment the following line
+% (picture proportions: 63 : 20 for standard, 169 : 40 for wide
+% *.eps format if you use latex+dvips+ps2pdf, 
+% *.jpg/*.png/*.pdf if you use pdflatex)
+
+\titleimage{trellis}
+
+%% TITLE LOGO
+
+% for a custom logo on the front page, copy your file into the 'logos'
+% directory, insert the filename in the line below and uncomment it
+
+%\titlelogo{mylogo}
+
+% (*.eps format if you use latex+dvips+ps2pdf,
+% *.jpg/*.png/*.pdf if you use pdflatex)
+
+%% TikZ INTEGRATION
+
+% use these packages for PCM symbols and UML classes
+% \usepackage{templates/tikzkit}
+% \usepackage{templates/tikzuml}
+
+% the presentation starts here
+
+\title[A Generic Yet Fast Viterbi Decoder]{A Generic Yet Fast SIMD Viterbi-Decoder\\ Or My Try To Square The Circle}
+\subtitle{}
+\author{Jan Kraemer}
+
+\institute{Communications Engineering Lab}
+
+% Bibliography
+
+\usepackage[citestyle=authoryear,bibstyle=numeric,hyperref,backend=biber]{biblatex}
+\addbibresource{templates/example.bib}
+\bibhang1em
+
+\begin{document}
+
+% change the following line to "ngerman" for German style date and logos
+\selectlanguage{english}
+
+%title page
+\begin{frame}
+\titlepage
+\end{frame}
+
+%table of contents
+%\begin{frame}{Outline}
+%\tableofcontents
+%\end{frame}
+
+\begin{frame}{Why speed up the decoding process}
+\begin{itemize}
+\item Viterbi Decoding is a very complex process
+\begin{itemize}
+	\item Neccessary for robust and fast communication
+	\item Bottleneck regarding throughput
+\end{itemize}
+\pause
+\item Gr-Trellis
+\begin{itemize}
+	\item Generic
+	\item Not optimized
+\end{itemize}
+\pause
+~ \newline
+\item[$\Rightarrow$] More throughput would be nice!
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Gr-Trellis}
+\begin{itemize}
+\item Works with literally every trellis based encoding scheme  
+\pause
+\item Uses several lookup tables to be as generic as possible
+\pause
+\item Already implemented in GNURadio
+\pause  
+\item So let's just modify it!
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Amazing Results?}
+\Huge NO!\\
+~\\
+\pause
+\Large But Why?
+\end{frame}
+\begin{frame}{I blame the Lookup table}
+$alpha[alphai*S+PS[j][i]]+in[k*O+OS[PS[j][i]*I+PI[j][i]]]$\\
+~\\
+
+\begin{itemize}
+	\item SSE Operations work better with coherent memory\\~\\
+	\item Generic lookup tables do not fulfill this requirement
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Start from scratch}
+Assumptions\\~\\
+	\begin{itemize}
+		\item Rate 1/n codes
+		\item Non-recursive codes
+		\item Number of states $\geqslant$ 8	
+	\end{itemize}
+\end{frame}
+\begin{frame}{Episode 4: A new decoder}
+\begin{itemize}
+	\item Integration into the new FEC-API	
+	\item Based on Phillip Karns and FEC-APIs Voyager Decoder
+	\item Uses a SSE float implementation 
+\end{itemize}	
+\end{frame}
+
+\begin{frame}{The Add-Compare-Select Butterfly}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.1]{logos/trellis_8.pdf}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{The Add-Compare-Select Operation}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.15]{logos/ACS.pdf}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Now for some real numbers}
+\begin{figure}[]
+  \includegraphics[scale=0.35]{logos/sse_vs_gen.pdf}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Conclusion}
+\begin{itemize}
+	\item SSE (float) is approx. 3.5x faster than standard C
+	\item Memory constraints lead to reduced genericity
+	\item Optimized Decoders are possible while a fair amount of flexibility is retained
+	
+\end{itemize}
+\end{frame}
+
+\begin{frame}{That's all folks}
+	% minipage mit (Blind-)Text
+	\begin{minipage}[t]{0.6\textwidth} 
+	\begin{itemize}
+	\item \textbf{Blog}:
+	\begin{itemize}
+	\item[]\textbf{spectrejan.blogspot.com}
+	\end{itemize}
+	\item \textbf{GITHUB}:
+	\begin{itemize}
+	\item[] \textbf{www.github.com/spectrejan}
+	\end{itemize}
+	\item \textbf{Email}:
+	\begin{itemize}
+	\item[] \textbf{kraemer.jn@gmail.com}
+	\end{itemize}
+	\end{itemize}
+	\end{minipage}
+	\begin{minipage}[t]{0.35\textwidth}
+	\begin{minipage}[t]{1\textwidth}
+	\begin{figure}[htbp]
+	% \textwidth bezieht sich nun auf die Minipage
+	\includegraphics[width=0.6\textwidth]{logos/GR}
+	\end{figure} 
+	\end{minipage}
+	\begin{minipage}[t]{1\textwidth}
+	\begin{figure}[htbp]
+	% \textwidth bezieht sich nun auf die Minipage
+	\includegraphics[width=0.6\textwidth]{logos/GSOC}
+	\end{figure} 
+	\end{minipage}
+	\end{minipage}
+\end{frame}
+
+\end{document}
